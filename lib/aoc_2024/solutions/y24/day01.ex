@@ -26,17 +26,11 @@ defmodule Aoc2024.Solutions.Y24.Day01 do
   end
 
   def part_two([row1, row2]) do
-    freq = calculate_frequency(row2)
+    freq = Enum.frequencies(row2)
 
     Enum.reduce(row1, 0, fn num, total ->
       multiplier = Map.get(freq, num, 0)
       total + num * multiplier
     end)
-  end
-
-  def calculate_frequency(list) do
-    Enum.group_by(list, & &1)
-    |> Enum.map(fn {key, times} -> {key, Enum.count(times)} end)
-    |> Map.new()
   end
 end
