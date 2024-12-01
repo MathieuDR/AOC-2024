@@ -5,8 +5,8 @@ defmodule Aoc2024.Solutions.Y24.Day01 do
     Input.read!(input)
     |> String.split("\n", trim: true)
     |> Enum.map(&parse_line/1)
-    |> Enum.reduce([[], []], fn [a, b], [row1, row2] ->
-      [[a | row1], [b | row2]]
+    |> Enum.reduce([[], []], fn [a, b], [left, right] ->
+      [[a | left], [b | right]]
     end)
     |> Enum.map(&Enum.reverse/1)
   end
@@ -16,19 +16,19 @@ defmodule Aoc2024.Solutions.Y24.Day01 do
     |> Enum.map(&String.to_integer/1)
   end
 
-  def part_one([row1, row2]) do
-    row1 = Enum.sort(row1)
-    row2 = Enum.sort(row2)
+  def part_one([left, right]) do
+    left = Enum.sort(left)
+    right = Enum.sort(right)
 
-    Enum.zip(row1, row2)
+    Enum.zip(left, right)
     |> Enum.map(fn {a, b} -> abs(a - b) end)
     |> Enum.sum()
   end
 
-  def part_two([row1, row2]) do
-    freq = Enum.frequencies(row2)
+  def part_two([left, right]) do
+    freq = Enum.frequencies(right)
 
-    Enum.reduce(row1, 0, fn num, total ->
+    Enum.reduce(left, 0, fn num, total ->
       multiplier = Map.get(freq, num, 0)
       total + num * multiplier
     end)
