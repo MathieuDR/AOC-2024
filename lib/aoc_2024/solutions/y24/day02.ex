@@ -22,23 +22,35 @@ defmodule Aoc2024.Solutions.Y24.Day02 do
     |> Enum.count(& &1)
   end
 
-  def to_diffs(levels) do
-    Enum.chunk_every(levels, 2, 1, :discard)
-    |> Enum.map(fn [a, b] -> a - b end)
-  end
-
   defp safe?(levels) do
     levels
-    |> to_diffs()
-    |> safe_transitions()
+    |> check_sequence()
     |> Enum.all?()
+  end
+
+  def check_sequence(levels) do
+    diffs =
+      Enum.chunk_every(levels, 2, 1, :discard)
+      |> Enum.map(fn [a, b] -> a - b end)
+
+    direction =
+      if Enum.count(diffs, &(&1 > 0)) >= length(levels) / 2, do: :increasing, else: :decreasing
+
+    Enum.map(diffs, fn diff ->
+      cond do
+        diff == 0 -> false
+        abs(diff) > 3 -> false
+        direction == :increasing and diff < 0 -> false
+        direction == :decreasing and diff > 0 -> false
+        true -> true
+      end
+    end)
   end
 
   def problem_dampener(levels) do
     transitions =
-      levels
-      |> to_diffs()
-      |> safe_transitions()
+      check_sequence(levels)
+      |> IO.inspect()
 
     if Enum.all?(transitions) do
       true
@@ -49,31 +61,41 @@ defmodule Aoc2024.Solutions.Y24.Day02 do
           |> safe?()
 
         _ ->
-          idx = Enum.find_index(transitions, &(not &1)) + 1
+          if fixable?(transitions) do
+            idx = Enum.find_index(transitions, &(not &1)) + 1
 
-          List.delete_at(levels, idx)
-          |> safe?()
+            List.delete_at(levels, idx)
+            |> safe?()
+          else
+            false
+          end
       end
     end
   end
 
-  def safe_transitions(diffs) do
-    transitions =
-      Enum.map(diffs, fn a ->
-        absolute_value = abs(a)
-        range? = absolute_value > 0 and absolute_value < 4
-        positive? = a > 0
+  def fixable?(transitions) do
+    bad_count =
+      Enum.count(transitions, &(not &1))
+      |> IO.inspect(label: inspect(transitions))
 
-        %{positive: range? and positive?, negative: range? and not positive?}
-      end)
+    cond do
+      bad_count == 1 ->
+        true
 
-    pos_trans = Enum.count(transitions, & &1.positive)
-    neg_trans = Enum.count(transitions, & &1.negative)
+      bad_count > 2 ->
+        true
 
-    if pos_trans >= neg_trans do
-      Enum.map(transitions, & &1.positive)
-    else
-      Enum.map(transitions, & &1.negative)
+      bad_count == 2 ->
+        # We check if it's fixable
+        # if they
+
+        Enum.chunk_every(transitions, 3, 1, :discard)
+        |> IO.inspect()
+        |> Enum.any?(fn
+          [false, false, true] -> true
+          [true, false, false] -> true
+          _ -> false
+        end)
     end
   end
 end

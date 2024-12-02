@@ -76,6 +76,14 @@ defmodule Aoc2024.Solutions.Y24.Day02Test do
     assert 5 == solve(input, :part_two)
   end
 
+  test "fixable" do
+    input = ~S"""
+      10 2 3 4 5 6 7 8 0
+    """
+
+    assert 0 == solve(input, :part_two)
+  end
+
   # You may also implement a test to validate the part two to ensure that you
   # did not broke your shared modules when implementing another problem.
 
