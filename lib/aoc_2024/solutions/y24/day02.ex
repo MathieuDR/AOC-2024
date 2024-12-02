@@ -48,9 +48,7 @@ defmodule Aoc2024.Solutions.Y24.Day02 do
   end
 
   def problem_dampener(levels) do
-    transitions =
-      check_sequence(levels)
-      |> IO.inspect()
+    transitions = check_sequence(levels)
 
     if Enum.all?(transitions) do
       true
@@ -61,41 +59,11 @@ defmodule Aoc2024.Solutions.Y24.Day02 do
           |> safe?()
 
         _ ->
-          if fixable?(transitions) do
-            idx = Enum.find_index(transitions, &(not &1)) + 1
+          idx = Enum.find_index(transitions, &(not &1)) + 1
 
-            List.delete_at(levels, idx)
-            |> safe?()
-          else
-            false
-          end
+          List.delete_at(levels, idx)
+          |> safe?()
       end
-    end
-  end
-
-  def fixable?(transitions) do
-    bad_count =
-      Enum.count(transitions, &(not &1))
-      |> IO.inspect(label: inspect(transitions))
-
-    cond do
-      bad_count == 1 ->
-        true
-
-      bad_count > 2 ->
-        true
-
-      bad_count == 2 ->
-        # We check if it's fixable
-        # if they
-
-        Enum.chunk_every(transitions, 3, 1, :discard)
-        |> IO.inspect()
-        |> Enum.any?(fn
-          [false, false, true] -> true
-          [true, false, false] -> true
-          _ -> false
-        end)
     end
   end
 end
