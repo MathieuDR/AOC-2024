@@ -2,22 +2,6 @@ defmodule Aoc2024.Solutions.Y24.Day02 do
   alias AoC.Input
 
   def parse(input, _part) do
-    # This function will receive the input path or an %AoC.Input.TestInput{}
-    # struct. To support the test you may read both types of input with either:
-    #
-    # * Input.stream!(input), equivalent to File.stream!/1
-    # * Input.stream!(input, trim: true), equivalent to File.stream!/2
-    # * Input.read!(input), equivalent to File.read!/1
-    #
-    # The role of your parse/2 function is to return a "problem" for the solve/2
-    # function.
-    #
-    # For instance:
-    #
-    # input
-    # |> Input.stream!()
-    # |> Enum.map!(&my_parse_line_function/1)
-
     Input.read!(input)
     |> String.split("\n", trim: true)
     |> Enum.map(fn report ->
@@ -29,45 +13,67 @@ defmodule Aoc2024.Solutions.Y24.Day02 do
   def part_one(problem) do
     problem
     |> Enum.map(&safe?/1)
-    |> Enum.filter(& &1)
-    |> Enum.count()
+    |> Enum.count(& &1)
   end
 
   def part_two(problem) do
     problem
-    |> Enum.map(&safe?(&1, 1))
-    |> Enum.filter(& &1)
-    |> Enum.count()
+    |> Enum.map(&problem_dampener/1)
+    |> Enum.count(& &1)
   end
 
-  # It fails if the first one is wrong. lets fix that later
-  def safe?(levels, ignores \\ 0) do
-    {fails, _, _} =
-      Enum.reduce(levels, {0, nil, nil}, fn
-        # _, {false, _, _} ->
-        #   {false, nil, nil}
-        #
-        elem, {fails, nil, nil} ->
-          {fails, elem, elem}
+  def to_diffs(levels) do
+    Enum.chunk_every(levels, 2, 1, :discard)
+    |> Enum.map(fn [a, b] -> a - b end)
+  end
 
-        elem, {fails, previous, first}
-        when 3 < abs(elem - previous) or abs(elem - previous) == 0 ->
-          {fails + 1, previous, first}
+  defp safe?(levels) do
+    levels
+    |> to_diffs()
+    |> safe_transitions()
+    |> Enum.all?()
+  end
 
-        elem, {fails, previous, first} when first > previous and previous < elem ->
-          {fails + 1, previous, first}
+  def problem_dampener(levels) do
+    transitions =
+      levels
+      |> to_diffs()
+      |> safe_transitions()
 
-        elem, {fails, previous, first} when first < previous and previous > elem ->
-          {fails + 1, previous, first}
+    if Enum.all?(transitions) do
+      true
+    else
+      case transitions do
+        [false, true | _rest] ->
+          List.delete_at(levels, 0)
+          |> safe?()
 
-        elem, {fails, _, first} ->
-          {fails, elem, first}
+        _ ->
+          idx = Enum.find_index(transitions, &(not &1)) + 1
+
+          List.delete_at(levels, idx)
+          |> safe?()
+      end
+    end
+  end
+
+  def safe_transitions(diffs) do
+    transitions =
+      Enum.map(diffs, fn a ->
+        absolute_value = abs(a)
+        range? = absolute_value > 0 and absolute_value < 4
+        positive? = a > 0
+
+        %{positive: range? and positive?, negative: range? and not positive?}
       end)
 
-    cond do
-      fails <= ignores -> true
-      ignores > 0 -> safe?(Enum.drop(levels, 1), ignores - 1)
-      true -> false
+    pos_trans = Enum.count(transitions, & &1.positive)
+    neg_trans = Enum.count(transitions, & &1.negative)
+
+    if pos_trans >= neg_trans do
+      Enum.map(transitions, & &1.positive)
+    else
+      Enum.map(transitions, & &1.negative)
     end
   end
 end

@@ -64,10 +64,22 @@ defmodule Aoc2024.Solutions.Y24.Day02Test do
     assert 4 == solve(input, :part_two)
   end
 
+  test "edge cases" do
+    input = ~S"""
+      3 10 4 7 8
+      10 3 5 6 9
+      1 10 12 14 15
+      7 6 4 2 10
+      7 6 4 10 2
+    """
+
+    assert 5 == solve(input, :part_two)
+  end
+
   # You may also implement a test to validate the part two to ensure that you
   # did not broke your shared modules when implementing another problem.
 
-  @part_two_solution CHANGE_ME
+  @part_two_solution 544
 
   test "part two solution" do
     assert {:ok, @part_two_solution} == AoC.run(2024, 2, :part_two)
