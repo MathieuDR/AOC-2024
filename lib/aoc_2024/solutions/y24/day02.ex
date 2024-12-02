@@ -59,11 +59,37 @@ defmodule Aoc2024.Solutions.Y24.Day02 do
           |> safe?()
 
         _ ->
-          idx = Enum.find_index(transitions, &(not &1)) + 1
+          if fixable?(transitions) do
+            idx = Enum.find_index(transitions, &(not &1)) + 1
 
-          List.delete_at(levels, idx)
-          |> safe?()
+            List.delete_at(levels, idx)
+            |> safe?()
+          else
+            false
+          end
       end
+    end
+  end
+
+  def fixable?(transitions) do
+    bad_count = Enum.count(transitions, &(not &1))
+
+    cond do
+      bad_count > 2 ->
+        false
+
+      # bad_count == 1 ->
+      true ->
+        true
+
+        # This could be fixed, but not right now
+        # bad_count == 2 ->
+        #   Enum.chunk_every(transitions, 3, 1, :discard)
+        #   |> Enum.any?(fn
+        #     [false, false, true] -> true
+        #     [true, false, false] -> true
+        #     _ -> false
+        #   end)
     end
   end
 end
