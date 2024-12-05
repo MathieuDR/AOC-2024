@@ -57,7 +57,7 @@ defmodule Aoc2024.Solutions.Y24.Day03Test do
   # You may also implement a test to validate the part two to ensure that you
   # did not broke your shared modules when implementing another problem.
 
-  @part_two_solution 88802350
+  @part_two_solution 88_802_350
 
   test "part two solution" do
     assert {:ok, @part_two_solution} == AoC.run(2024, 3, :part_two)
