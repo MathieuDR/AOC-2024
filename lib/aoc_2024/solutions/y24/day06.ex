@@ -24,21 +24,10 @@ defmodule Aoc2024.Solutions.Y24.Day06 do
   end
 
   def part_one({map, %Coords{} = bounds}) do
-    [guard_coords] =
-      Map.filter(map, fn
-        {_k, :guard} -> true
-        {_, _} -> false
-      end)
-      |> Map.keys()
+    {:no_loop, vissited} = do_walk(map, bounds)
 
-    map = Map.delete(map, guard_coords)
-
-    # |> IO.inspect(label: "map")
-
-    # IO.inspect(bounds, label: "bounds")
-
-    walk(map, guard_coords, :north, [guard_coords], bounds)
-    |> Enum.uniq()
+    vissited
+    |> Enum.uniq_by(fn {{_dir, coords}, _} -> coords end)
     |> Enum.count()
   end
 
@@ -48,14 +37,20 @@ defmodule Aoc2024.Solutions.Y24.Day06 do
 
     cond do
       Coords.out_of_bounds(new_location, bounds) ->
-        visitted
+        {:no_loop, visitted}
 
       Map.get(map, new_location) == :obstacle ->
         new_direction = turn(direction)
         walk(map, location, new_direction, visitted, bounds)
 
       true ->
-        walk(map, new_location, direction, [new_location | visitted], bounds)
+        entry = {direction, new_location}
+
+        if Map.has_key?(visitted, entry) do
+          {:loop, visitted}
+        else
+          walk(map, new_location, direction, Map.put(visitted, entry, true), bounds)
+        end
     end
   end
 
@@ -69,7 +64,39 @@ defmodule Aoc2024.Solutions.Y24.Day06 do
   def delta(:south), do: %Coords{x: 0, y: 1}
   def delta(:west), do: %Coords{x: -1, y: 0}
 
-  # def part_two(problem) do
-  #   problem
-  # end
+  def part_two({map, %Coords{x: xBound, y: yBound} = bounds}) do
+    for x <- 0..xBound, y <- 0..yBound do
+      coord = %Coords{x: x, y: y}
+
+      case Map.get(map, coord) do
+        nil ->
+          Map.put(map, coord, :obstacle)
+          |> loop?(bounds)
+
+        _ ->
+          false
+      end
+    end
+    |> Enum.count(& &1)
+  end
+
+  def loop?(map, bounds) do
+    case do_walk(map, bounds) do
+      {:no_loop, _} -> false
+      {:loop, _} -> true
+    end
+  end
+
+  def do_walk(map, %Coords{} = bounds) do
+    [guard_coords] =
+      Map.filter(map, fn
+        {_k, :guard} -> true
+        {_, _} -> false
+      end)
+      |> Map.keys()
+
+    map = Map.delete(map, guard_coords)
+
+    walk(map, guard_coords, :north, %{{:north, guard_coords} => true}, bounds)
+  end
 end
