@@ -66,17 +66,20 @@ defmodule Aoc2024.Solutions.Y24.Day06 do
 
   def part_two({map, %Coords{x: xBound, y: yBound} = bounds}) do
     for x <- 0..xBound, y <- 0..yBound do
-      coord = %Coords{x: x, y: y}
+      Task.async(fn ->
+        coord = %Coords{x: x, y: y}
 
-      case Map.get(map, coord) do
-        nil ->
-          Map.put(map, coord, :obstacle)
-          |> loop?(bounds)
+        case Map.get(map, coord) do
+          nil ->
+            Map.put(map, coord, :obstacle)
+            |> loop?(bounds)
 
-        _ ->
-          false
-      end
+          _ ->
+            false
+        end
+      end)
     end
+    |> Enum.map(&Task.await/1)
     |> Enum.count(& &1)
   end
 
