@@ -1,1 +1,1 @@
-IEx.configure(inspect: [charlists: :as_lists])
+# IEx.configure(inspect: [charlists: :as_lists])

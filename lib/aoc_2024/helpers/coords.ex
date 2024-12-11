@@ -5,6 +5,13 @@ defmodule Aoc2024.Helpers.Coords do
     %__MODULE__{x: x + dx, y: y + dy}
   end
 
+  def calculate_delta(%__MODULE__{x: x, y: y}, %__MODULE__{x: x2, y: y2}) do
+    %__MODULE__{
+      x: x - x2,
+      y: y - y2
+    }
+  end
+
   def out_of_bounds(
         %__MODULE__{x: x, y: y} = _current,
         %__MODULE__{x: xBound, y: yBound} = _bounds
@@ -15,6 +22,12 @@ defmodule Aoc2024.Helpers.Coords do
       y < 0 -> true
       y > yBound -> true
       true -> false
+    end
+  end
+
+  defimpl Inspect do
+    def inspect(%__MODULE{x: x, y: y}, _opts) do
+      "{#{x}, #{y}}"
     end
   end
 end
