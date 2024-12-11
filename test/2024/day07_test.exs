@@ -48,30 +48,22 @@ defmodule Aoc2024.Solutions.Y24.Day07Test do
   # Once your part one was successfully sumbitted, you may uncomment this test
   # to ensure your implementation was not altered when you implement part two.
 
-  # @part_one_solution CHANGE_ME
-  #
-  # test "part one solution" do
-  #   assert {:ok, @part_one_solution} == AoC.run(2024, 7, :part_one)
-  # end
+  @part_one_solution 5_030_892_084_481
 
-  # test "part two example" do
-  #   input = ~S"""
-  #   This is an
-  #   example input.
-  #   replace with
-  #   an example from
-  #   the AoC website.
-  #   """
-  #
-  #   assert CHANGE_ME == solve(input, :part_two)
-  # end
+  test "part one solution" do
+    assert {:ok, @part_one_solution} == AoC.run(2024, 7, :part_one)
+  end
+
+  test "part two example" do
+    assert 11387 == solve(@input, :part_two)
+  end
 
   # You may also implement a test to validate the part two to ensure that you
   # did not broke your shared modules when implementing another problem.
 
-  # @part_two_solution CHANGE_ME
-  #
-  # test "part two solution" do
-  #   assert {:ok, @part_two_solution} == AoC.run(2024, 7, :part_two)
-  # end
+  @part_two_solution 91_377_448_644_679
+
+  test "part two solution" do
+    assert {:ok, @part_two_solution} == AoC.run(2024, 7, :part_two)
+  end
 end

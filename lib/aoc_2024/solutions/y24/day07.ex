@@ -1,8 +1,6 @@
 defmodule Aoc2024.Solutions.Y24.Day07 do
   alias AoC.Input
 
-  # defstruct [:leftovers, :result, :children, :parent]
-
   defmodule Operation do
     defstruct [:left, :right, :result, :operand]
 
@@ -10,10 +8,9 @@ defmodule Aoc2024.Solutions.Y24.Day07 do
       def inspect(%Operation{left: left, right: right, operand: operand}, _opts) do
         operator =
           case operand do
-            :div -> "/"
+            :concat -> "||"
             :mul -> "*"
             :add -> "+"
-            :sub -> "-"
           end
 
         "#{left}, #{right} #{operator}"
@@ -48,18 +45,14 @@ defmodule Aoc2024.Solutions.Y24.Day07 do
     end)
   end
 
-  def part_one(problem) do
+  def solve(problem, operators \\ [:mul, :add]) do
     problem
     |> Enum.map(fn {start, rest} ->
-      # reverse =
-      #   rest
-      #   |> Enum.reverse()
-
       [f | rest] = rest
-      #
+
       equations =
         [%__MODULE__.Equation{result: f, operations: []}]
-        |> calculate_to(rest, start)
+        |> calculate_to(rest, start, operators)
 
       {start, equations}
     end)
@@ -67,115 +60,99 @@ defmodule Aoc2024.Solutions.Y24.Day07 do
       {_start, []} -> false
       {_start, _operations} -> true
     end)
-    # |> Enum.map(&elem(&1, 0))
-
     |> Enum.reduce(0, fn {start, _}, acc -> acc + start end)
   end
 
-  def calculate_to(equations, [], working_towards) do
+  def part_one(problem), do: solve(problem, [:mul, :add])
+  def part_two(problem), do: solve(problem, [:mul, :add, :concat])
+
+  def to_equation(
+        :mul,
+        %__MODULE__.Equation{result: operand_left, operations: operations},
+        operand_right,
+        goal
+      ) do
+    case operand_left * operand_right do
+      x when x <= goal ->
+        operation = %__MODULE__.Operation{
+          left: operand_left,
+          right: operand_right,
+          result: x,
+          operand: :mul
+        }
+
+        %__MODULE__.Equation{
+          result: x,
+          operations: [operation | operations]
+        }
+
+      _ ->
+        nil
+    end
+  end
+
+  def to_equation(
+        :add,
+        %__MODULE__.Equation{result: operand_left, operations: operations},
+        operand_right,
+        goal
+      ) do
+    case operand_left + operand_right do
+      x when x <= goal ->
+        operation = %__MODULE__.Operation{
+          left: operand_left,
+          right: operand_right,
+          result: x,
+          operand: :add
+        }
+
+        %__MODULE__.Equation{
+          result: x,
+          operations: [operation | operations]
+        }
+
+      _ ->
+        nil
+    end
+  end
+
+  def to_equation(
+        :concat,
+        %__MODULE__.Equation{result: operand_left, operations: operations},
+        operand_right,
+        goal
+      ) do
+    digits = trunc(:math.log10(operand_right)) + 1
+    powed = trunc(:math.pow(10, digits))
+
+    case operand_left * powed + operand_right do
+      x when x <= goal ->
+        operation = %__MODULE__.Operation{
+          left: operand_left,
+          right: operand_right,
+          result: x,
+          operand: :concat
+        }
+
+        %__MODULE__.Equation{
+          result: x,
+          operations: [operation | operations]
+        }
+
+      _ ->
+        nil
+    end
+  end
+
+  def calculate_to(equations, [], working_towards, _operators) do
     Enum.filter(equations, &(&1.result == working_towards))
   end
 
-  def calculate_to(equations, [num | leftovers], working_towards) do
-    Enum.flat_map(equations, fn %__MODULE__.Equation{result: result, operations: operations} ->
-      mul_equation =
-        case num * result do
-          x when x <= working_towards ->
-            operation = %__MODULE__.Operation{
-              left: result,
-              right: num,
-              result: x,
-              operand: :mul
-            }
-
-            %__MODULE__.Equation{
-              result: operation.result,
-              operations: [operation | operations]
-            }
-
-          _ ->
-            nil
-        end
-
-      add_equation =
-        case result + num do
-          x when x <= working_towards ->
-            operation = %__MODULE__.Operation{
-              left: result,
-              right: num,
-              result: x,
-              operand: :add
-            }
-
-            %__MODULE__.Equation{
-              result: operation.result,
-              operations: [operation | operations]
-            }
-
-          _ ->
-            nil
-        end
-
-      [mul_equation, add_equation]
+  def calculate_to(equations, [num | leftovers], working_towards, operators) do
+    Enum.flat_map(equations, fn equation ->
+      Enum.map(operators, &to_equation(&1, equation, num, working_towards))
       |> Enum.reject(&is_nil(&1))
     end)
-    |> calculate_to(leftovers, working_towards)
+    |> calculate_to(leftovers, working_towards, operators)
   end
-
-  def calculate_to_zero(equations, []) do
-    Enum.filter(equations, &(&1.result == 0))
-  end
-
-  def calculate_to_zero(
-        equations,
-        [num | leftovers]
-      ) do
-    Enum.flat_map(equations, fn %__MODULE__.Equation{result: result, operations: operations} ->
-      div_equation =
-        case rem(result, num) do
-          0 ->
-            operation = %__MODULE__.Operation{
-              left: result,
-              right: num,
-              result: div(result, num),
-              operand: :div
-            }
-
-            %__MODULE__.Equation{
-              result: operation.result,
-              operations: [operation | operations]
-            }
-
-          _ ->
-            nil
-        end
-
-      sub_equation =
-        case result - num do
-          x when x >= 0 ->
-            operation = %__MODULE__.Operation{
-              left: result,
-              right: num,
-              result: result - num,
-              operand: :sub
-            }
-
-            %__MODULE__.Equation{
-              result: operation.result,
-              operations: [operation | operations]
-            }
-
-          _ ->
-            nil
-        end
-
-      [div_equation, sub_equation]
-      |> Enum.reject(&is_nil(&1))
-    end)
-    |> calculate_to_zero(leftovers)
-  end
-
-  # def part_two(problem) do
-  #   problem
-  # end
 end
