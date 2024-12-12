@@ -50,6 +50,70 @@ defmodule Aoc2024.Solutions.Y24.Day09 do
     |> Enum.reduce(0, &(&2 + &1.id * &1.value))
   end
 
+  def part_two(blocks) do
+    reverse = Enum.reverse(blocks)
+
+    {defragmented, _, _} =
+      Enum.reduce_while(blocks, {[], reverse, []}, fn
+        block, {acc, reverse, removed} ->
+          if Enum.member?(removed, block.id) do
+            {fitted_blocks, reverse} = fit_size(reverse, block.empty_size + block.file_size, [])
+            removed = Enum.map(fitted_blocks, &elem(&1, 0)) ++ removed
+            acc = Enum.reverse(fitted_blocks) ++ acc
+
+            {:cont, {acc, reverse, removed}}
+          else
+            file_block = {block.id, block.file_size}
+            reverse = List.delete(reverse, block)
+
+            {fitted_blocks, reverse} = fit_size(reverse, block.empty_size, [])
+            removed = Enum.map(fitted_blocks, &elem(&1, 0)) ++ removed
+
+            acc = Enum.reverse([file_block | fitted_blocks]) ++ acc
+
+            {:cont, {acc, reverse, removed}}
+          end
+      end)
+
+    [{_, start_pointer} | for_checksum] =
+      defragmented
+      |> Enum.reverse()
+      |> IO.inspect(label: "defragmented")
+
+    for_checksum
+    # |> Enum.reject(&(elem(&1, 0) == 0))
+    |> IO.inspect(label: "checksum")
+    |> Enum.reduce({0, start_pointer}, fn {value, size}, {acc, pointer} ->
+      # IO.puts("Value: #{value}, size: #{size}")
+      # IO.puts("Pointer: #{pointer}, acc: #{acc}")
+      # IO.puts("range: #{pointer}..#{size + pointer}")
+
+      acc =
+        pointer..(size - 1 + pointer)
+        |> Enum.reduce(acc, fn idx, acc ->
+          IO.puts("acc: #{acc}, pointer: #{idx}, value: #{value}, to_add: #{value * idx}")
+          acc + idx * value
+        end)
+
+      {acc, pointer + size}
+    end)
+  end
+
+  def fit_size(blocks, 0, acc), do: {Enum.reverse(acc), blocks}
+
+  def fit_size(blocks, size, acc) do
+    Enum.find_index(blocks, &(&1.file_size <= size))
+    |> case do
+      nil ->
+        acc = [{0, size} | acc]
+        {Enum.reverse(acc), blocks}
+
+      x ->
+        {block, blocks} = List.pop_at(blocks, x)
+        fit_size(blocks, size - block.file_size, [{block.id, block.file_size} | acc])
+    end
+  end
+
   def pop([]), do: nil
   def pop([%__MODULE__.Block{file_size: 0, empty_size: 0} | rest]), do: pop(rest)
 
@@ -89,8 +153,4 @@ defmodule Aoc2024.Solutions.Y24.Day09 do
         {value, leftover}
     end
   end
-
-  # def part_two(problem) do
-  #   problem
-  # end
 end
