@@ -3,6 +3,17 @@ defmodule Aoc2024.Solutions.Y24.Day09 do
 
   defmodule Block do
     defstruct [:id, :file_size, :empty_size]
+
+    def to_output(%Block{id: value, file_size: size, empty_size: empty}) do
+      "#{to_string(size, inspect(value))}#{to_string(empty, ".")}"
+    end
+
+    defp to_string(0, _), do: ""
+
+    defp to_string(size, char) do
+      1..size
+      |> Enum.map(fn _ -> char end)
+    end
   end
 
   def parse(input, _part) do
@@ -43,7 +54,7 @@ defmodule Aoc2024.Solutions.Y24.Day09 do
           {:cont, {[%{id: idx, value: value} | acc], blocks}}
         else
           nil ->
-            IO.puts("Halted at IDX: #{idx}")
+            # IO.puts("Halted at IDX: #{idx}")
             {:halt, acc}
         end
     end)
@@ -53,37 +64,96 @@ defmodule Aoc2024.Solutions.Y24.Day09 do
   def part_two(blocks) do
     reverse = Enum.reverse(blocks)
 
-    {defragmented, _, _} =
-      Enum.reduce_while(blocks, {[], reverse, []}, fn
-        block, {acc, reverse, removed} ->
-          if Enum.member?(removed, block.id) do
-            {fitted_blocks, reverse} = fit_size(reverse, block.empty_size + block.file_size, [])
-            removed = Enum.map(fitted_blocks, &elem(&1, 0)) ++ removed
-            acc = Enum.reverse(fitted_blocks) ++ acc
+    defragmented =
+      Enum.reduce(reverse, blocks, fn %{id: r_id} = reversed_block, blocks ->
+        # IO.inspect(reversed_block, label: "\n\nSearching for")
 
-            {:cont, {acc, reverse, removed}}
-          else
-            file_block = {block.id, block.file_size}
-            reverse = List.delete(reverse, block)
+        {blocks, _} =
+          Enum.flat_map_reduce(blocks, false, fn
+            %{id: ^r_id} = current, false ->
+              # IO.puts("We're at same block, Halting.\n")
+              {[current], true}
 
-            {fitted_blocks, reverse} = fit_size(reverse, block.empty_size, [])
-            removed = Enum.map(fitted_blocks, &elem(&1, 0)) ++ removed
+            %{id: ^r_id, empty_size: empty, file_size: size}, true ->
+              # IO.inspect(reversed_block, label: "emptying")
 
-            acc = Enum.reverse([file_block | fitted_blocks]) ++ acc
+              new_empty =
+                empty + size
 
-            {:cont, {acc, reverse, removed}}
-          end
+              # |> IO.inspect(label: "Putting empty size to")
+
+              {[
+                 %{
+                   reversed_block
+                   | file_size: 0,
+                     empty_size: new_empty
+                 }
+               ], true}
+
+            %{empty_size: empty} = current, false when empty >= reversed_block.file_size ->
+              # IO.inspect(current, label: "Putting in")
+
+              {[
+                 %{current | empty_size: 0},
+                 %{reversed_block | empty_size: empty - reversed_block.file_size}
+               ], true}
+
+            current, t ->
+              # IO.puts("#{inspect(current)}: #{inspect(t)}")
+
+              {[current], t}
+          end)
+
+        # IO.puts("\n\n")
+
+        Enum.reduce(blocks, "", &(&2 <> Block.to_output(&1)))
+        # |> IO.inspect(label: "result")
+
+        blocks
+      end)
+      |> Enum.flat_map(fn
+        %{file_size: 0, empty_size: 0} ->
+          []
+
+        %{id: value, file_size: size, empty_size: 0} ->
+          [{value, size}]
+
+        %{id: value, file_size: size, empty_size: x} ->
+          [{value, size}, {0, x}]
       end)
 
-    [{_, start_pointer} | for_checksum] =
-      defragmented
-      |> Enum.reverse()
-      |> IO.inspect(label: "defragmented")
+    # {defragmented, _, _} =
+    #   Enum.reduce_while(blocks, {[], reverse, []}, fn
+    #     block, {acc, reverse, removed} ->
+    #       if Enum.member?(removed, block.id) do
+    #         {fitted_blocks, reverse} = fit_size(reverse, block.empty_size + block.file_size, [])
+    #         removed = Enum.map(fitted_blocks, &elem(&1, 0)) ++ removed
+    #         acc = Enum.reverse(fitted_blocks) ++ acc
+    #
+    #         {:cont, {acc, reverse, removed}}
+    #       else
+    #         file_block = {block.id, block.file_size}
+    #         reverse = List.delete(reverse, block)
+    #
+    #         {fitted_blocks, reverse} = fit_size(reverse, block.empty_size, [])
+    #         removed = Enum.map(fitted_blocks, &elem(&1, 0)) ++ removed
+    #
+    #         acc = Enum.reverse([file_block | fitted_blocks]) ++ acc
+    #
+    #         {:cont, {acc, reverse, removed}}
+    #       end
+    #   end)
 
-    for_checksum
-    # |> Enum.reject(&(elem(&1, 0) == 0))
-    |> IO.inspect(label: "checksum")
-    |> Enum.reduce({0, start_pointer}, fn {value, size}, {acc, pointer} ->
+    # FORM : [{VALUE, SIZE}]
+    # [{_, start_pointer} | for_checksum] =
+    #   defragmented
+    #   # |> Enum.reverse()
+    #   |> IO.inspect(label: "defragmented")
+    #
+    defragmented
+    |> Enum.reject(&(elem(&1, 1) == 0))
+    # |> IO.inspect(label: "checksum")
+    |> Enum.reduce({0, 0}, fn {value, size}, {acc, pointer} ->
       # IO.puts("Value: #{value}, size: #{size}")
       # IO.puts("Pointer: #{pointer}, acc: #{acc}")
       # IO.puts("range: #{pointer}..#{size + pointer}")
@@ -91,12 +161,14 @@ defmodule Aoc2024.Solutions.Y24.Day09 do
       acc =
         pointer..(size - 1 + pointer)
         |> Enum.reduce(acc, fn idx, acc ->
-          IO.puts("acc: #{acc}, pointer: #{idx}, value: #{value}, to_add: #{value * idx}")
           acc + idx * value
+          # IO.puts("#{acc} + #{idx} * #{value} = #{new_acc}")
+          # new_acc
         end)
 
       {acc, pointer + size}
     end)
+    |> elem(0)
   end
 
   def fit_size(blocks, 0, acc), do: {Enum.reverse(acc), blocks}

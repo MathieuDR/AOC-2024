@@ -28,6 +28,7 @@ defmodule Aoc2024.Solutions.Y24.Day09Test do
 
     apply(Solution, part, [problem])
   end
+
   @input "2333133121414131402"
 
   test "part one example" do
@@ -37,7 +38,7 @@ defmodule Aoc2024.Solutions.Y24.Day09Test do
   # Once your part one was successfully sumbitted, you may uncomment this test
   # to ensure your implementation was not altered when you implement part two.
 
-  @part_one_solution 6200294120911
+  @part_one_solution 6_200_294_120_911
 
   test "part one solution" do
     assert {:ok, @part_one_solution} == AoC.run(2024, 9, :part_one)
