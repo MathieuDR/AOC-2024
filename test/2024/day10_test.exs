@@ -68,6 +68,21 @@ defmodule Aoc2024.Solutions.Y24.Day10Test do
     assert 4 == solve(input, :part_one)
   end
 
+  test "complex test" do
+    input = """
+    89010123
+    78121874
+    87430965
+    96549874
+    45678903
+    32019012
+    01329801
+    10456732
+    """
+
+    assert 36 == solve(input, :part_one)
+  end
+
   # Once your part one was successfully sumbitted, you may uncomment this test
   # to ensure your implementation was not altered when you implement part two.
 
