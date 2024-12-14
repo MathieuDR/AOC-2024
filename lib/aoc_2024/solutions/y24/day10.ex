@@ -51,8 +51,6 @@ defmodule Aoc2024.Solutions.Y24.Day10 do
 
         Map.put(acc, coord, node)
     end)
-
-    # |> Enum.reject(&(elem(&1, 1).edges == []))
   end
 
   def find_edges(map, coord, height, opts \\ []) do
@@ -84,50 +82,52 @@ defmodule Aoc2024.Solutions.Y24.Day10 do
       to_graph(map, max_delta: 1, directions: @directions)
       |> Map.new()
 
-    # |> IO.inspect(label: "graph")
+    graph
+    |> Enum.reduce([], fn
+      {_coord, %{value: 0} = node}, acc -> [node | acc]
+      _, acc -> acc
+    end)
+    |> find_paths(graph, 9)
+    |> Enum.map(fn paths ->
+      Enum.map(paths, &hd/1)
+      |> Enum.uniq()
+      |> Enum.count()
+    end)
+    |> Enum.sum()
+  end
+
+  def part_two({map, _bounds}) do
+    graph =
+      to_graph(map, max_delta: 1, directions: @directions)
+      |> Map.new()
 
     graph
     |> Enum.reduce([], fn
       {_coord, %{value: 0} = node}, acc -> [node | acc]
       _, acc -> acc
     end)
-    |> find_goals(graph, 9)
-    # |> IO.inspect(label: "res")
-    |> Enum.map(&Enum.count(&1))
+    |> find_paths(graph, 9)
+    |> Enum.map(fn paths ->
+      Enum.uniq(paths)
+      |> Enum.count()
+    end)
     |> Enum.sum()
   end
 
-  def find_goals(starts, graph, goal) do
+  def find_paths(starts, graph, goal) do
     Enum.map(starts, fn start ->
-      # IO.puts("\n\n#{inspect(start)}\n")
-
-      depth_first_search(graph, start, [])
-      # |> IO.inspect(label: "in_path")
-      |> Enum.filter(&(&1.value == goal))
-      |> Enum.uniq_by(& &1.coord)
-
-      # |> IO.inspect(label: "filtered")
+      depth_first_search(graph, start, [start])
+      |> Enum.filter(fn path -> Enum.count(path, &(&1.value == goal)) > 0 end)
     end)
+    |> Enum.uniq()
   end
 
-  def depth_first_search(graph, node, visitted) do
-    Enum.reduce(node.edges, visitted, fn {edge, _weight}, visitted ->
-      case Enum.member?(visitted, edge) do
-        true ->
-          visitted
+  def depth_first_search(_graph, %{edges: []}, path), do: [path]
 
-        false ->
-          # IO.inspect(edge, label: "edge")
-
-          edge = Map.get(graph, edge)
-          # |> IO.inspect(label: "not visitted edge")
-
-          depth_first_search(graph, edge, [edge | visitted])
-      end
+  def depth_first_search(graph, node, path) do
+    Enum.flat_map(node.edges, fn {edge, _weight} ->
+      edge = Map.get(graph, edge)
+      depth_first_search(graph, edge, [edge | path])
     end)
   end
-
-  # def part_two(problem) do
-  #   problem
-  # end
 end

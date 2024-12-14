@@ -81,35 +81,52 @@ defmodule Aoc2024.Solutions.Y24.Day10Test do
     """
 
     assert 36 == solve(input, :part_one)
+    assert 81 == solve(input, :part_two)
   end
 
   # Once your part one was successfully sumbitted, you may uncomment this test
   # to ensure your implementation was not altered when you implement part two.
 
-  # @part_one_solution CHANGE_ME
-  #
-  # test "part one solution" do
-  #   assert {:ok, @part_one_solution} == AoC.run(2024, 10, :part_one)
-  # end
+  @part_one_solution 820
 
-  # test "part two example" do
-  #   input = ~S"""
-  #   This is an
-  #   example input.
-  #   replace with
-  #   an example from
-  #   the AoC website.
-  #   """
-  #
-  #   assert CHANGE_ME == solve(input, :part_two)
-  # end
+  test "part one solution" do
+    assert {:ok, @part_one_solution} == AoC.run(2024, 10, :part_one)
+  end
+
+  test "part two simple example" do
+    input = ~S"""
+    .....0.
+    ..4321.
+    ..5..2.
+    ..6543.
+    ..7..4.
+    ..8765.
+    ..9....
+    """
+
+    assert 3 == solve(input, :part_two)
+  end
+
+  test "part two single trailhead example" do
+    input = ~S"""
+    ..90..9
+    ...1.98
+    ...2..7
+    6543456
+    765.987
+    876....
+    987....
+    """
+
+    assert 13 == solve(input, :part_two)
+  end
 
   # You may also implement a test to validate the part two to ensure that you
   # did not broke your shared modules when implementing another problem.
 
-  # @part_two_solution CHANGE_ME
-  #
-  # test "part two solution" do
-  #   assert {:ok, @part_two_solution} == AoC.run(2024, 10, :part_two)
-  # end
+  @part_two_solution 1786
+
+  test "part two solution" do
+    assert {:ok, @part_two_solution} == AoC.run(2024, 10, :part_two)
+  end
 end
