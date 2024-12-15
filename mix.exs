@@ -23,7 +23,7 @@ defmodule Aoc2024.MixProject do
   defp deps do
     [
       {:aoc, "~> 0.13"},
-       {:memoize, "~> 1.4"},
+      {:memoize, "~> 1.4"}
     ]
   end
 
