@@ -58,12 +58,12 @@ defmodule Aoc2024.Helpers.GridMap do
     end)
   end
 
-  defp get_delta(%Coords{x: x, y: y}, :up), do: %Coords{x: x, y: y - 1}
-  defp get_delta(%Coords{x: x, y: y}, :down), do: %Coords{x: x, y: y + 1}
-  defp get_delta(%Coords{x: x, y: y}, :right), do: %Coords{x: x + 1, y: y}
-  defp get_delta(%Coords{x: x, y: y}, :left), do: %Coords{x: x - 1, y: y}
-  defp get_delta(%Coords{x: x, y: y}, :diagonal_up_right), do: %Coords{x: x + 1, y: y - 1}
-  defp get_delta(%Coords{x: x, y: y}, :diagonal_up_left), do: %Coords{x: x - 1, y: y - 1}
-  defp get_delta(%Coords{x: x, y: y}, :diagonal_down_right), do: %Coords{x: x + 1, y: y + 1}
-  defp get_delta(%Coords{x: x, y: y}, :diagonal_down_left), do: %Coords{x: x - 1, y: y + 1}
+  def get_delta(%Coords{x: x, y: y}, :up), do: %Coords{x: x, y: y - 1}
+  def get_delta(%Coords{x: x, y: y}, :down), do: %Coords{x: x, y: y + 1}
+  def get_delta(%Coords{x: x, y: y}, :right), do: %Coords{x: x + 1, y: y}
+  def get_delta(%Coords{x: x, y: y}, :left), do: %Coords{x: x - 1, y: y}
+  def get_delta(%Coords{x: x, y: y}, :diagonal_up_right), do: %Coords{x: x + 1, y: y - 1}
+  def get_delta(%Coords{x: x, y: y}, :diagonal_up_left), do: %Coords{x: x - 1, y: y - 1}
+  def get_delta(%Coords{x: x, y: y}, :diagonal_down_right), do: %Coords{x: x + 1, y: y + 1}
+  def get_delta(%Coords{x: x, y: y}, :diagonal_down_left), do: %Coords{x: x - 1, y: y + 1}
 end
