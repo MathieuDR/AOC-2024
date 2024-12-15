@@ -8,30 +8,16 @@ defmodule Aoc2024.Solutions.Y24.Day11 do
   end
 
   def part_one(numbers) do
-    blink_stones(numbers, 25)
-    |> Enum.count()
+    blink_stones(numbers, 25, 5, %{})
+    |> Enum.sum()
   end
 
   def part_two(numbers) do
-    blink_stones(numbers, 75, 25)
-    |> Enum.count()
+    blink_stones(numbers, 75, 15, %{})
+    |> Enum.sum()
   end
 
-  def blink(number, map, blinks) do
-    case Map.get(map, number) do
-      nil ->
-        result =
-          1..blinks
-          |> Enum.reduce([number], fn _, numbers ->
-            Enum.flat_map(numbers, &do_blink/1)
-          end)
-
-        {result, Map.put(map, number, result)}
-
-      x ->
-        {x, map}
-    end
-  end
+  def blink_stones(nums), do: Enum.flat_map(nums, &do_blink/1)
 
   def do_blink(0), do: [1]
 
@@ -56,17 +42,45 @@ defmodule Aoc2024.Solutions.Y24.Day11 do
     [a, b]
   end
 
-  def blink_stones(numbers, blinks, blinks_per_round \\ 5) do
-    {stones, _conversion_map} =
-      1..div(blinks, blinks_per_round)
-      |> Enum.reduce({numbers, %{}}, fn i, {stones, conversion_map} ->
-        IO.puts("We're about to blink to #{inspect(i * blinks_per_round)} times")
-        res = Enum.flat_map_reduce(stones, conversion_map, &blink(&1, &2, blinks_per_round))
-        IO.puts("We've blinked #{inspect(i * blinks_per_round)} times")
+  def blink_stones(numbers, blinks, step, conversion_map) do
+    to_do = min(step, blinks)
+    # IO.puts("Blinks to do: #{blinks} with #{step} step")
 
-        res
+    {numbers, conversion_map} =
+      Enum.reduce(numbers, {[], conversion_map}, fn number, {acc, conversion_map} ->
+        case Map.get(conversion_map, number) do
+          nil ->
+            res = blink_stone(number, to_do)
+            conversion_map = Map.put(conversion_map, number, res)
+            {[res | acc], conversion_map}
+
+          x ->
+            {[x | acc], conversion_map}
+        end
       end)
 
-    stones
+    # Enum.count(numbers)
+    # |> IO.inspect(label: "#{inspect(blinks - to_do)} blinks remaining for")
+
+    numbers
+    |> Enum.map(fn numbers ->
+      Task.async(fn ->
+        case blinks - to_do do
+          0 ->
+            [Enum.count(numbers)]
+
+          x ->
+            blink_stones(numbers, x, step, conversion_map)
+        end
+      end)
+    end)
+    |> Enum.flat_map(&Task.await/1)
+  end
+
+  def blink_stone(number, blinks) do
+    1..blinks
+    |> Enum.reduce([number], fn _blink, stones ->
+      Enum.flat_map(stones, &do_blink/1)
+    end)
   end
 end

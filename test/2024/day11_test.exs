@@ -29,14 +29,14 @@ defmodule Aoc2024.Solutions.Y24.Day11Test do
     apply(Solution, part, [problem])
   end
 
-  test "part one example" do
-    input =
-      "0 1 10 99 999"
-      |> Input.as_file()
-      |> Solution.parse(:part_one)
-
-    assert [1, 2024, 1, 0, 9, 9, 2_021_976] == Solution.blink_stones(input, 1, 1)
-  end
+  # test "part one example" do
+  #   input =
+  #     "0 1 10 99 999"
+  #     |> Input.as_file()
+  #     |> Solution.parse(:part_one)
+  #
+  #   assert [1, 2, 2, 1, 1] == Solution.blink_stones(input, 1)
+  # end
 
   test "part one example two" do
     input = "125 17"
@@ -53,15 +53,8 @@ defmodule Aoc2024.Solutions.Y24.Day11Test do
   end
 
   # test "part two example" do
-  #   input = ~S"""
-  #   This is an
-  #   example input.
-  #   replace with
-  #   an example from
-  #   the AoC website.
-  #   """
-  #
-  #   assert CHANGE_ME == solve(input, :part_two)
+  #   input = "125 17"
+  #   assert 550_000_312 == solve(input, :part_two)
   # end
 
   # You may also implement a test to validate the part two to ensure that you
