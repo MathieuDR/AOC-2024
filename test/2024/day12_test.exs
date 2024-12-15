@@ -46,6 +46,15 @@ defmodule Aoc2024.Solutions.Y24.Day12Test do
     assert 1930 == solve(input, :part_one)
   end
 
+  test "part one example simple" do
+    input = ~S"""
+    BB
+    BQ
+    """
+
+    assert 28 == solve(input, :part_one)
+  end
+
   test "part one example" do
     input = ~S"""
     AAAA
