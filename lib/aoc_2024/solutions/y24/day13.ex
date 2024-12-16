@@ -54,15 +54,43 @@ defmodule Aoc2024.Solutions.Y24.Day13 do
   end
 
   def solve_machine(%ClawMachine{prize: prize, a_button: a, b_button: b}) do
-    x =
-      diophantine_equation(prize.x, a.x, b.x)
-      |> Enum.to_list()
+    x = diophantine_equation(prize.x, a.x, b.x)
+    y = diophantine_equation(prize.y, a.y, b.y)
 
-    y =
-      diophantine_equation(prize.y, a.y, b.y)
-      |> Enum.to_list()
+    match_streams(x, y)
+    |> Enum.take(1)
+  end
 
-    MapSet.intersection(MapSet.new(x), MapSet.new(y))
+  def match_streams(stream_a, stream_b) do
+    Stream.resource(
+      fn ->
+        a = Enum.take(stream_a, 1)
+        b = Enum.take(stream_b, 1)
+        {stream_a, stream_b, a, b}
+      end,
+      fn
+        {_, _, [], _b} ->
+          {:halt, []}
+
+        {_, _, _a, []} ->
+          {:halt, []}
+
+        {stream_a, stream_b, [a], [b]} ->
+          cond do
+            a == b ->
+              {[a],
+               {Stream.drop(stream_a, 1), Stream.drop(stream_b, 1), Enum.take(stream_a, 1),
+                Enum.take(stream_b, 1)}}
+
+            elem(a, 1) <= elem(b, 1) ->
+              {[], {Stream.drop(stream_a, 1), stream_b, Enum.take(stream_a, 1), [b]}}
+
+            true ->
+              {[], {stream_a, Stream.drop(stream_b, 1), [a], Enum.take(stream_b, 1)}}
+          end
+      end,
+      fn _ -> :ok end
+    )
   end
 
   def diophantine_equation(p, a, b) do
@@ -75,20 +103,18 @@ defmodule Aoc2024.Solutions.Y24.Day13 do
       n = s * factor
       m = t * factor
 
-      k = Kernel.round(m / div(a, gcd)) + 1_000
+      k = Kernel.round(m / div(a, gcd)) + 10
+      # k = Kernel.round(n / div(b, gcd))
 
       a_stream =
-        0..100_000
+        0..10000
         |> Stream.map(fn i -> n + s_add.(k - i) end)
 
       b_stream =
-        0..100_000
+        0..10000
         |> Stream.map(fn i -> m - t_add.(k - i) end)
 
       Stream.zip(a_stream, b_stream)
-      |> Stream.reject(fn {a, b} ->
-        a <= 0 or b <= 0
-      end)
     else
       []
     end

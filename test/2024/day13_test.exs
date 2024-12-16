@@ -48,7 +48,7 @@ defmodule Aoc2024.Solutions.Y24.Day13Test do
     Prize: X=18641, Y=10279
     """
 
-    assert 480 == solve(input, :part_two)
+    assert 480 == solve(input, :part_one)
   end
 
   # Once your part one was successfully sumbitted, you may uncomment this test
