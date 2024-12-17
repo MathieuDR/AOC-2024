@@ -28,7 +28,6 @@ defmodule Aoc2024.Solutions.Y24.Day13 do
   ```
 
   # Cramer's rule
-
   Looking on the internet I found an interesting page that I only partially get [Cramer's rule](https://en.wikipedia.org/wiki/Cramer%27s_rule)
 
   > In linear algebra, Cramer's rule is an explicit formula for the solution of a system of linear equations with as many equations as unknowns, valid whenever the system has a unique solution.
@@ -59,13 +58,13 @@ defmodule Aoc2024.Solutions.Y24.Day13 do
   ```
       [Px  Bx]
       [Py  By]     PxBy - BxPy
-  x = --------  =  -----------
+  i = --------  =  -----------
       [Ax  Bx]     AxBy - BxAy
       [Ay  By]
 
       [Ax  Px]
       [Ay  Py]     AxPy - PxAy
-  y = --------  =  -----------
+  j = --------  =  -----------
       [Ax  Bx]     AxBy - BxAy
       [Ay  By]
   ```
@@ -108,93 +107,36 @@ defmodule Aoc2024.Solutions.Y24.Day13 do
   def solve(problem) do
     problem
     |> Enum.map(fn machine ->
-      solve_machine(machine)
+      cramer(machine)
       |> calculate_machine_cost()
-      |> case do
-        [] -> 0
-        x -> Enum.min(x)
-      end
     end)
     |> Enum.sum()
   end
 
-  def calculate_machine_cost(solutions) do
-    Enum.map(solutions, fn {a, b} ->
-      a * 3 + b
-    end)
-  end
+  def calculate_machine_cost({a, b}), do: a * 3 + b
 
-  def solve_machine(%ClawMachine{prize: prize, a_button: a, b_button: b}) do
-    diophantine_equation(prize.x - prize.y, a.x - a.y, b.x - b.y)
-    |> Enum.take(5)
-    |> IO.inspect()
+  def cramer(%__MODULE__.ClawMachine{prize: p, a_button: a, b_button: b}) do
+    det_a = a.x * b.y - b.x * a.y
+    det_x = p.x * b.y - b.x * p.y
+    det_y = a.x * p.y - p.x * a.y
 
-    # x = diophantine_equation(prize.x, a.x, b.x)
-    # y = diophantine_equation(prize.y, a.y, b.y)
-    #
-    # match_streams(x, y)
-    # |> Enum.take(1)
-  end
+    cond do
+      det_a == 0 ->
+        {0, 0}
 
-  def match_streams(stream_a, stream_b) do
-    Stream.resource(
-      fn ->
-        a = Enum.take(stream_a, 1)
-        b = Enum.take(stream_b, 1)
-        {stream_a, stream_b, a, b}
-      end,
-      fn
-        {_, _, [], _b} ->
-          {:halt, []}
+      # check if it's 0, we cannot half press a button
+      rem(det_x, det_a) != 0 ->
+        {0, 0}
 
-        {_, _, _a, []} ->
-          {:halt, []}
+      # check if it's 0, we cannot half press a button
+      rem(det_y, det_a) != 0 ->
+        {0, 0}
 
-        {stream_a, stream_b, [a], [b]} ->
-          cond do
-            a == b ->
-              {[a],
-               {Stream.drop(stream_a, 1), Stream.drop(stream_b, 1), Enum.take(stream_a, 1),
-                Enum.take(stream_b, 1)}}
+      true ->
+        i = div(det_x, det_a)
+        j = div(det_y, det_a)
 
-            elem(a, 1) <= elem(b, 1) ->
-              {[], {Stream.drop(stream_a, 1), stream_b, Enum.take(stream_a, 1), [b]}}
-
-            true ->
-              {[], {stream_a, Stream.drop(stream_b, 1), [a], Enum.take(stream_b, 1)}}
-          end
-      end,
-      fn _ -> :ok end
-    )
-  end
-
-  def diophantine_equation(p, a, b) do
-    {gcd, s, t} = Integer.extended_gcd(a, b)
-
-    if rem(p, gcd) == 0 do
-      factor = div(p, gcd)
-      s_add = fn k -> k * div(b, gcd) end
-      t_add = fn k -> k * div(a, gcd) end
-      n = s * factor
-      m = t * factor
-
-      k = Kernel.round(m / div(a, gcd)) + 10
-      # k = Kernel.round(n / div(b, gcd))
-
-      a_stream =
-        0..100
-        |> Stream.map(fn i -> n + s_add.(k - i) end)
-
-      b_stream =
-        0..100
-        |> Stream.map(fn i -> m - t_add.(k - i) end)
-
-      Stream.zip(a_stream, b_stream)
-      |> Stream.reject(fn {a, b} ->
-        a <= 0 or b <= 0
-      end)
-    else
-      []
+        {i, j}
     end
   end
 end
