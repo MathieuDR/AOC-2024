@@ -34,9 +34,46 @@ defmodule Aoc2024.Solutions.Y24.Day14 do
     |> Tuple.product()
   end
 
-  # def part_two(problem) do
-  #   problem
-  # end
+  def part_two({robots, bounds}) do
+    # robots_map = Map.new(robots, fn %{position: p} = robot -> {p, robot} end)
+
+    {_robots, step} =
+      Stream.from_index()
+      |> Stream.drop(1)
+      |> Enum.reduce_while(robots, fn step, robots ->
+        robots = Enum.map(robots, &update_position(&1, bounds, 1))
+        positions = Enum.map(robots, & &1.position) |> MapSet.new()
+
+        if form_line?(positions) do
+          {:halt, {robots, step}}
+        else
+          {:cont, robots}
+        end
+      end)
+
+    step
+  end
+
+  def form_line?(positions) do
+    Enum.reduce(positions, false, fn
+      _, true ->
+        true
+
+      position, false ->
+        form_line?(position, positions)
+    end)
+  end
+
+  def form_line?(position, positions) do
+    1..15
+    |> Enum.reduce(true, fn
+      _i, false ->
+        false
+
+      i, true ->
+        MapSet.member?(positions, %Coords{x: position.x, y: position.y + i})
+    end)
+  end
 
   def count_robots_in_quadrants(robots, bounds) do
     q =
