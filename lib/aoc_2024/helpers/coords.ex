@@ -25,6 +25,14 @@ defmodule Aoc2024.Helpers.Coords do
     end
   end
 
+  def sorter(a, b) do
+      cond do
+        a.y < b.y -> true
+        a.y == b.y and a.x <= b.x -> true
+        true -> false
+      end
+  end
+
   defimpl Inspect do
     def inspect(%__MODULE{x: x, y: y}, _opts) do
       "{#{x}, #{y}}"

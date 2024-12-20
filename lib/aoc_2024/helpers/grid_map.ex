@@ -12,10 +12,15 @@ defmodule Aoc2024.Helpers.GridMap do
           |> Enum.with_index()
           |> Enum.reduce({map, 0}, fn
             {char, x}, {map, _xBound} ->
-              value = fn_cell_value.(char)
-              coord = %Coords{x: x, y: y}
-              map = Map.put(map, coord, value)
-              {map, x}
+              case fn_cell_value.(char) do
+                nil ->
+                  {map, x}
+
+                value ->
+                  coord = %Coords{x: x, y: y}
+                  map = Map.put(map, coord, value)
+                  {map, x}
+              end
           end)
 
         {map, y, xBound}
@@ -56,6 +61,21 @@ defmodule Aoc2024.Helpers.GridMap do
         :no_edge -> acc
       end
     end)
+  end
+
+  def print_map(map, fn_value_to_char) do
+    {chars, _y} =
+      Enum.sort(map, fn {acoord, _}, {bcoord, _} -> Coords.sorter(acoord, bcoord) end)
+      |> Enum.reduce({[], 0}, fn {coord, value}, {chars, last_y} ->
+        char = fn_value_to_char.(value)
+        chars = if last_y == coord.y, do: [char | chars], else: [char, ?\n | chars]
+
+        {chars, coord.y}
+      end)
+
+    chars
+    |> Enum.reverse()
+    |> Kernel.to_string()
   end
 
   def get_delta(%Coords{x: x, y: y}, :up), do: %Coords{x: x, y: y - 1}

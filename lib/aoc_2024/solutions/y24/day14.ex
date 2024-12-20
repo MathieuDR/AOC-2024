@@ -101,15 +101,7 @@ defmodule Aoc2024.Solutions.Y24.Day14 do
   end
 
   # Helper to check the testing
-  def sort(robots) do
-    Enum.sort(robots, fn a, b ->
-      cond do
-        a.y < b.y -> true
-        a.y == b.y and a.x <= b.x -> true
-        true -> false
-      end
-    end)
-  end
+  def sort(robots), do: Enum.sort(robots, &Coords.sorter/2)
 
   def update_position(%{position: p, velocity: v} = robot, %Coords{x: xBound, y: yBound}, steps) do
     xDiv = xBound + 1
