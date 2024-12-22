@@ -47,19 +47,12 @@ defmodule Aoc2024.Solutions.Y24.Day15 do
 
   def part_one(%{warehouse: warehouse, commands: commands}) do
     {warehouse, _robot_position} = do_commands(warehouse, commands)
-
     sum_boxes(warehouse)
   end
 
   def part_two(%{warehouse: warehouse, commands: commands}) do
-    # I imagine this can be done the same way, without really expanding,
-    # but the boxes being in 2 places trips me up a bit
-
     warehouse = expand_warehouse(warehouse)
-    str = GridMap.print_map(warehouse, &value_to_char/1)
-    IO.puts("\n#{str}\n\n")
-
-    {warehouse, _robot_position} = do_commands(warehouse, commands, true)
+    {warehouse, _robot_position} = do_commands(warehouse, commands)
 
     sum_boxes(warehouse)
   end
@@ -122,28 +115,28 @@ defmodule Aoc2024.Solutions.Y24.Day15 do
 
     Stream.from_index()
     |> Enum.reduce_while(position, fn _i, position ->
+      value = Map.get(map, position)
       delta = GridMap.get_delta(position, direction)
-      delta_value = Map.get(map, delta)
 
       cond do
-        :floor == delta_value ->
-          {:halt, delta}
+        :floor == value ->
+          {:halt, position}
 
-        fork and delta_value == :left_part_box and
+        fork and value == :left_part_box and
             next_open_spot(map, %Coords{y: delta.y, x: delta.x + 1}, direction) != nil ->
           {:cont, delta}
 
-        fork and delta_value == :right_part_box and
+        fork and value == :right_part_box and
             next_open_spot(map, %Coords{y: delta.y, x: delta.x - 1}, direction) != nil ->
           {:cont, delta}
 
-        :box == delta_value ->
+        :box == value ->
           {:cont, delta}
 
-        not fork and delta_value == :left_part_box ->
+        not fork and value == :left_part_box ->
           {:cont, delta}
 
-        not fork and delta_value == :right_part_box ->
+        not fork and value == :right_part_box ->
           {:cont, delta}
 
         true ->
@@ -168,41 +161,6 @@ defmodule Aoc2024.Solutions.Y24.Day15 do
 
   def push(map, position, nil, _direction), do: {map, position}
 
-  def push(map, from, to, direction) when direction in [:up, :down] do
-    steps =
-      [abs(to.x - from.x), abs(to.y - from.y)]
-      |> Enum.max()
-
-    inverted_direction = GridMap.invert(direction)
-
-    IO.puts(
-      "\nPUSHING: #{inspect(from)} -> #{inspect(to)}. direction: #{inverted_direction} in #{steps} steps"
-    )
-
-    1..steps
-    |> Enum.reduce({map, to}, fn _step, {map, current_pos} ->
-      new_pos = GridMap.get_delta(current_pos, inverted_direction)
-      new_pos_value = Map.get(map, new_pos)
-
-      {map, _x} =
-        cond do
-          :floor == new_pos_value ->
-            {map, nil}
-
-          :left_part_box == new_pos_value ->
-            fix_split_box(map, new_pos, 1, direction)
-
-          :right_part_box == new_pos_value ->
-            fix_split_box(map, new_pos, -1, direction)
-
-          true ->
-            raise "I do not know what I have here: #{inspect(new_pos_value)} @ #{inspect(new_pos)}"
-        end
-
-      switch(map, current_pos, new_pos, inverted_direction)
-    end)
-  end
-
   def push(map, from, to, direction) do
     steps =
       [abs(to.x - from.x), abs(to.y - from.y)]
@@ -213,6 +171,26 @@ defmodule Aoc2024.Solutions.Y24.Day15 do
     1..steps
     |> Enum.reduce({map, to}, fn _step, {map, current_pos} ->
       new_pos = GridMap.get_delta(current_pos, inverted_direction)
+      new_pos_value = Map.get(map, new_pos)
+
+      # Make sure split boxes are fixed by this part
+      {map, _x} =
+        if direction in [:up, :down] do
+          cond do
+            :floor == new_pos_value ->
+              {map, nil}
+
+            :left_part_box == new_pos_value ->
+              fix_split_box(map, new_pos, 1, direction)
+
+            :right_part_box == new_pos_value ->
+              fix_split_box(map, new_pos, -1, direction)
+          end
+        else
+          # Fixing not needed
+          {map, nil}
+        end
+
       switch(map, current_pos, new_pos, inverted_direction)
     end)
   end
@@ -245,6 +223,7 @@ defmodule Aoc2024.Solutions.Y24.Day15 do
   def sum_boxes(map) do
     Enum.reduce(map, 0, fn
       {coords, :box}, acc -> acc + gps(coords)
+      {coords, :left_part_box}, acc -> acc + gps(coords)
       _, acc -> acc
     end)
   end

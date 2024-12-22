@@ -46,32 +46,32 @@ defmodule Aoc2024.Solutions.Y24.Day15Test do
     assert 2028 == solve(input, :part_one)
   end
 
+  @input ~S"""
+  ##########
+  #..O..O.O#
+  #......O.#
+  #.OO..O.O#
+  #..O@..O.#
+  #O#..O...#
+  #O..O..O.#
+  #.OO.O.OO#
+  #....O...#
+  ##########
+
+  <vv>^<v^>v>^vv^v>v<>v^v<v<^vv<<<^><<><>>v<vvv<>^v^>^<<<><<v<<<v^vv^v>^
+  vvv<<^>^v^^><<>>><>^<<><^vv^^<>vvv<>><^^v>^>vv<>v<<<<v<^v>^<^^>>>^<v<v
+  ><>vv>v^v^<>><>>>><^^>vv>v<^^^>>v^v^<^^>v^^>v^<^v>v<>>v^v^<v>v^^<^^vv<
+  <<v<^>>^^^^>>>v^<>vvv^><v<<<>^^^vv^<vvv>^>v<^^^^v<>^>vvvv><>>v^<<^^^^^
+  ^><^><>>><>^^<<^^v>>><^<v>^<vv>>v>>>^v><>^v><<<<v>>v<v<v>vvv>^<><<>^><
+  ^>><>^v<><^vvv<^^<><v<<<<<><^v<<<><<<^^<v<^^^><^>>^<v^><<<^>>^v<v^v<v^
+  >^>>^v>vv>^<<^v<>><<><<v<<v><>v<^vv<<<>^^v^>^^>>><<^v>>v^v><^^>>^<>vv^
+  <><^^>^^^<><vvvvv^v<v<<>^v<v>v<<^><<><<><<<^^<<<^<<>><<><^^^>^^<>^>v<>
+  ^^>vv<^v^v<vv>^<><v<^v>^^^>>>^^vvv^>vvv<>>>^<^>>>>>^<<^v>^vvv<>^<><<v>
+  v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^
+  """
+
   test "part one example" do
-    input = ~S"""
-    ##########
-    #..O..O.O#
-    #......O.#
-    #.OO..O.O#
-    #..O@..O.#
-    #O#..O...#
-    #O..O..O.#
-    #.OO.O.OO#
-    #....O...#
-    ##########
-
-    <vv>^<v^>v>^vv^v>v<>v^v<v<^vv<<<^><<><>>v<vvv<>^v^>^<<<><<v<<<v^vv^v>^
-    vvv<<^>^v^^><<>>><>^<<><^vv^^<>vvv<>><^^v>^>vv<>v<<<<v<^v>^<^^>>>^<v<v
-    ><>vv>v^v^<>><>>>><^^>vv>v<^^^>>v^v^<^^>v^^>v^<^v>v<>>v^v^<v>v^^<^^vv<
-    <<v<^>>^^^^>>>v^<>vvv^><v<<<>^^^vv^<vvv>^>v<^^^^v<>^>vvvv><>>v^<<^^^^^
-    ^><^><>>><>^^<<^^v>>><^<v>^<vv>>v>>>^v><>^v><<<<v>>v<v<v>vvv>^<><<>^><
-    ^>><>^v<><^vvv<^^<><v<<<<<><^v<<<><<<^^<v<^^^><^>>^<v^><<<^>>^v<v^v<v^
-    >^>>^v>vv>^<<^v<>><<><<v<<v><>v<^vv<<<>^^v^>^^>>><<^v>>v^v><^^>>^<>vv^
-    <><^^>^^^<><vvvvv^v<v<<>^v<v>v<<^><<><<><<<^^<<<^<<>><<><^^^>^^<>^>v<>
-    ^^>vv<^v^v<vv>^<><v<^v>^^^>>>^^vvv^>vvv<>>>^<^>>>>>^<<^v>^vvv<>^<><<v>
-    v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^
-    """
-
-    assert 10092 == solve(input, :part_one)
+    assert 10092 == solve(@input, :part_one)
   end
 
   # Once your part one was successfully sumbitted, you may uncomment this test
@@ -81,6 +81,30 @@ defmodule Aoc2024.Solutions.Y24.Day15Test do
 
   test "part one solution" do
     assert {:ok, @part_one_solution} == AoC.run(2024, 15, :part_one)
+  end
+
+  test "part two example, complex" do
+    assert 9021 == solve(@input, :part_two)
+  end
+
+  test "part two example, edge" do
+    input = ~S"""
+    #######
+    #...#.#
+    #.....#
+    #..O@.#
+    #..O..#
+    #..##.#
+    #.....#
+    #.....#
+    #.....#
+    #.....#
+    #######
+
+    <^<<v
+    """
+
+    assert 618 == solve(input, :part_two)
   end
 
   test "part two example" do
@@ -96,7 +120,7 @@ defmodule Aoc2024.Solutions.Y24.Day15Test do
     <vv<<^^<<^^
     """
 
-    assert 105 == solve(input, :part_two)
+    assert 618 == solve(input, :part_two)
   end
 
   # You may also implement a test to validate the part two to ensure that you
