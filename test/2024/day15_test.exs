@@ -96,8 +96,7 @@ defmodule Aoc2024.Solutions.Y24.Day15Test do
     <vv<<^^<<^^
     """
 
-    assert false
-    # assert 105 == solve(input, :part_two)
+    assert 105 == solve(input, :part_two)
   end
 
   # You may also implement a test to validate the part two to ensure that you

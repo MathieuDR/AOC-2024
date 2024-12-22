@@ -59,7 +59,8 @@ defmodule Aoc2024.Solutions.Y24.Day15 do
     str = GridMap.print_map(warehouse, &value_to_char/1)
     IO.puts("\n#{str}\n\n")
 
-    {warehouse, _robot_position} = do_commands(warehouse, commands)
+    {warehouse, _robot_position} = do_commands(warehouse, commands, true)
+
     sum_boxes(warehouse)
   end
 
@@ -88,21 +89,26 @@ defmodule Aoc2024.Solutions.Y24.Day15 do
     end)
   end
 
-  def do_commands(state, commands) do
+  def do_commands(state, commands, print? \\ false) do
     {robot_position, :robot} =
       Enum.find(state, &(elem(&1, 1) == :robot))
 
     Enum.reduce(commands, {state, robot_position}, fn command, {map, position} ->
-      execute_command(position, map, command)
+      {map, pos} = execute_command(position, map, command)
+
+      if print? do
+        str = GridMap.print_map(map, &value_to_char/1)
+        IO.puts("\nMoving: #{command}\n#{str}\n\n")
+      end
+
+      {map, pos}
     end)
   end
 
   def execute_command(position, map, command) do
-    # if Map.get(map, position) != :robot, do: raise("We're not the robot, abort")
     delta = GridMap.get_delta(position, command)
 
     case Map.get(map, delta) do
-      # nil -> {map, position}
       :wall -> {map, position}
       :box -> maybe_move(map, position, delta, command, &switch/4)
       :left_part_box -> maybe_move(map, position, delta, command, &push/4)
@@ -134,6 +140,12 @@ defmodule Aoc2024.Solutions.Y24.Day15 do
         :box == delta_value ->
           {:cont, delta}
 
+        not fork and delta_value == :left_part_box ->
+          {:cont, delta}
+
+        not fork and delta_value == :right_part_box ->
+          {:cont, delta}
+
         true ->
           {:halt, nil}
       end
@@ -156,7 +168,68 @@ defmodule Aoc2024.Solutions.Y24.Day15 do
 
   def push(map, position, nil, _direction), do: {map, position}
 
+  def push(map, from, to, direction) when direction in [:up, :down] do
+    steps =
+      [abs(to.x - from.x), abs(to.y - from.y)]
+      |> Enum.max()
+
+    inverted_direction = GridMap.invert(direction)
+
+    IO.puts(
+      "\nPUSHING: #{inspect(from)} -> #{inspect(to)}. direction: #{inverted_direction} in #{steps} steps"
+    )
+
+    1..steps
+    |> Enum.reduce({map, to}, fn _step, {map, current_pos} ->
+      new_pos = GridMap.get_delta(current_pos, inverted_direction)
+      new_pos_value = Map.get(map, new_pos)
+
+      {map, _x} =
+        cond do
+          :floor == new_pos_value ->
+            {map, nil}
+
+          :left_part_box == new_pos_value ->
+            fix_split_box(map, new_pos, 1, direction)
+
+          :right_part_box == new_pos_value ->
+            fix_split_box(map, new_pos, -1, direction)
+
+          true ->
+            raise "I do not know what I have here: #{inspect(new_pos_value)} @ #{inspect(new_pos)}"
+        end
+
+      switch(map, current_pos, new_pos, inverted_direction)
+    end)
+  end
+
   def push(map, from, to, direction) do
+    steps =
+      [abs(to.x - from.x), abs(to.y - from.y)]
+      |> Enum.max()
+
+    inverted_direction = GridMap.invert(direction)
+
+    1..steps
+    |> Enum.reduce({map, to}, fn _step, {map, current_pos} ->
+      new_pos = GridMap.get_delta(current_pos, inverted_direction)
+      switch(map, current_pos, new_pos, inverted_direction)
+    end)
+  end
+
+  def fix_split_box(map, box_pos, delta, direction) do
+    other_part = %Coords{x: box_pos.x + delta, y: box_pos.y}
+    delta = GridMap.get_delta(other_part, direction)
+
+    case Map.get(map, delta) do
+      :floor ->
+        switch(map, other_part, delta, direction)
+
+      _x ->
+        move_box_to = next_open_spot(map, delta, direction)
+        {map, _} = push(map, delta, move_box_to, direction)
+        switch(map, other_part, delta, direction)
+    end
   end
 
   def switch(map, position, nil, _direction), do: {map, position}

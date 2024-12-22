@@ -78,6 +78,17 @@ defmodule Aoc2024.Helpers.GridMap do
     |> Kernel.to_string()
   end
 
+  @invert_map %{
+    up: :down,
+    down: :up,
+    right: :left,
+    left: :right,
+    diagonal_up_right: :diagonal_down_right,
+    diagonal_up_left: :diagonal_down_left
+  }
+
+  def invert(direction), do: @invert_map[direction]
+
   def get_delta(%Coords{x: x, y: y}, :up), do: %Coords{x: x, y: y - 1}
   def get_delta(%Coords{x: x, y: y}, :down), do: %Coords{x: x, y: y + 1}
   def get_delta(%Coords{x: x, y: y}, :right), do: %Coords{x: x + 1, y: y}
