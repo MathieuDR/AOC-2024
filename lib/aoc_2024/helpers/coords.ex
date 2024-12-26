@@ -26,11 +26,11 @@ defmodule Aoc2024.Helpers.Coords do
   end
 
   def sorter(a, b) do
-      cond do
-        a.y < b.y -> true
-        a.y == b.y and a.x <= b.x -> true
-        true -> false
-      end
+    cond do
+      a.y < b.y -> true
+      a.y == b.y and a.x <= b.x -> true
+      true -> false
+    end
   end
 
   defimpl Inspect do
