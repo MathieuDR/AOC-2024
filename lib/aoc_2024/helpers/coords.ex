@@ -33,6 +33,13 @@ defmodule Aoc2024.Helpers.Coords do
     end
   end
 
+  def manhatten_distance(%__MODULE__{x: ax, y: ay}, %__MODULE__{x: bx, y: by}) do
+    y = abs(ay - by)
+    x = abs(ax - bx)
+
+    y + x
+  end
+
   defimpl Inspect do
     def inspect(%__MODULE{x: x, y: y}, _opts) do
       "{#{x}, #{y}}"
