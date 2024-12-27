@@ -67,31 +67,77 @@ defmodule Aoc2024.Solutions.Y24.Day16Test do
   # Once your part one was successfully sumbitted, you may uncomment this test
   # to ensure your implementation was not altered when you implement part two.
 
-  # @part_one_solution CHANGE_ME
+  @part_one_solution 85396
   #
   test "part one solution" do
-    assert {:ok, part_one_solution} = AoC.run(2024, 16, :part_one)
-    assert part_one_solution < 85404
+    assert {:ok, @part_one_solution} == AoC.run(2024, 16, :part_one)
   end
 
-  # test "part two example" do
-  #   input = ~S"""
-  #   This is an
-  #   example input.
-  #   replace with
-  #   an example from
-  #   the AoC website.
-  #   """
-  #
-  #   assert CHANGE_ME == solve(input, :part_two)
-  # end
+  test "part two example, simple" do
+    input = ~S"""
+    ###############
+    #.......#....E#
+    #.#.###.#.###.#
+    #.....#.#...#.#
+    #.###.#####.#.#
+    #.#.#.......#.#
+    #.#.#####.###.#
+    #...........#.#
+    ###.#.#####.#.#
+    #...#.....#.#.#
+    #.#.#.###.#.#.#
+    #.....#...#.#.#
+    #.###.#.#.#.#.#
+    #S..#.....#...#
+    ###############
+    """
+
+    assert 45 == solve(input, :part_two)
+  end
+
+  test "part two example" do
+    input = ~S"""
+    #################
+    #...#...#...#..E#
+    #.#.#.#.#.#.#.#.#
+    #.#.#.#...#...#.#
+    #.#.#.#.###.#.#.#
+    #...#.#.#.....#.#
+    #.#.#.#.#.#####.#
+    #.#...#.#.#.....#
+    #.#.#####.#.###.#
+    #.#.#.......#...#
+    #.#.###.#####.###
+    #.#.#...#.....#.#
+    #.#.#.#####.###.#
+    #.#.#.........#.#
+    #.#.#.#########.#
+    #S#.............#
+    #################
+    """
+
+    assert 64 == solve(input, :part_two)
+  end
+
+  test "part two example, 2" do
+    input = ~S"""
+    ..E..
+    .###.
+    .....
+    ##S##
+    """
+
+    assert 4007 == solve(input, :part_one)
+    assert 13 == solve(input, :part_two)
+  end
 
   # You may also implement a test to validate the part two to ensure that you
   # did not broke your shared modules when implementing another problem.
 
   # @part_two_solution CHANGE_ME
   #
-  # test "part two solution" do
-  #   assert {:ok, @part_two_solution} == AoC.run(2024, 16, :part_two)
-  # end
+  test "part two solution" do
+    assert {:ok, part_two_solution} = AoC.run(2024, 16, :part_two)
+    assert part_two_solution > 414
+  end
 end

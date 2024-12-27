@@ -41,9 +41,18 @@ defmodule Aoc2024.Solutions.Y24.Day16 do
 
   def part_one(%{graph: graph, reindeer: {start, _start_direction}, goal: goal} = problem) do
     start_node = Map.get(graph, start)
-    {cost, path} = a_star(graph, start_node, goal)
-    print_path(problem, path)
+    {cost, _paths} = a_star(graph, start_node, goal)
+    # print_path(problem, path)
     cost
+  end
+
+  def part_two(%{graph: graph, reindeer: {start, _start_direction}, goal: goal} = problem) do
+    start_node = Map.get(graph, start)
+    {_cost, paths} = a_star(graph, start_node, goal)
+    # print_path(problem, path)
+    Enum.flat_map([paths], fn path -> Enum.map(path, &elem(&1, 0)) end)
+    |> Enum.uniq()
+    |> Enum.count()
   end
 
   def a_star(graph, start, goal) do
@@ -242,8 +251,4 @@ defmodule Aoc2024.Solutions.Y24.Day16 do
 
     IO.puts("")
   end
-
-  # def part_two(problem) do
-  #   problem
-  # end
 end
