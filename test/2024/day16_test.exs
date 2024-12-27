@@ -48,7 +48,20 @@ defmodule Aoc2024.Solutions.Y24.Day16Test do
     ###############
     """
 
-    assert CHANGE_ME == solve(input, :part_one)
+    assert 7036 == solve(input, :part_one)
+  end
+
+  test "part one example, 2" do
+    input = ~S"""
+    ##.##.#.#E
+    ....#...#.
+    .##.#.#.#.
+    .##.#.#.#.
+    .##.#.#.#.
+    S.#...#...
+    """
+
+    assert 9030 == solve(input, :part_one)
   end
 
   # Once your part one was successfully sumbitted, you may uncomment this test
@@ -56,9 +69,10 @@ defmodule Aoc2024.Solutions.Y24.Day16Test do
 
   # @part_one_solution CHANGE_ME
   #
-  # test "part one solution" do
-  #   assert {:ok, @part_one_solution} == AoC.run(2024, 16, :part_one)
-  # end
+  test "part one solution" do
+    assert {:ok, part_one_solution} = AoC.run(2024, 16, :part_one)
+    assert part_one_solution < 85404
+  end
 
   # test "part two example" do
   #   input = ~S"""
