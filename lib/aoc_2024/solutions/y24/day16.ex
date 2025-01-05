@@ -203,10 +203,8 @@ defmodule Aoc2024.Solutions.Y24.Day16 do
     end
   end
 
-  def unique_nodes(came_from, goal) do
-    Map.keys(came_from)
-    |> Enum.map(&elem(&1, 0))
-    |> Enum.concat([goal])
+  def unique_nodes(came_from, _goal) do
+    Enum.flat_map(came_from, fn {{k, _kdir}, {v, _vdir}} -> [k, v] end)
     |> Enum.uniq()
   end
 
@@ -246,8 +244,10 @@ defmodule Aoc2024.Solutions.Y24.Day16 do
           coord = %Coords{x: x, y: y}
 
           cond do
-            coord == start -> "S"
-            coord == goal -> "E"
+            MapSet.member?(path_set, coord) and coord == start -> "S"
+            MapSet.member?(path_set, coord) and coord == goal -> "E"
+            coord == start -> "s"
+            coord == goal -> "e"
             MapSet.member?(path_set, coord) -> "○"  
             map[coord] == :wall -> "#"
             map[coord] == :floor -> "."
