@@ -4,7 +4,7 @@ defmodule Aoc2024.Solutions.Y24.Day16 do
   alias Aoc2024.Helpers.Coords
 
   def parse(input, _part) do
-    {map, _bounds} =
+    {map, bounds} =
       Input.read!(input)
       |> GridMap.string_to_map(&map_value/1)
 
@@ -31,27 +31,28 @@ defmodule Aoc2024.Solutions.Y24.Day16 do
         _ -> false
       end)
 
-    %{
+    problem = %{
       map: map,
+      bounds: bounds,
       reindeer: {reindeer_pos, :right},
       goal: end_pos,
       graph: graph
     }
+
+    Map.put(problem, :result, solve(problem))
   end
 
-  def part_one(%{graph: graph, reindeer: {start, _start_direction}, goal: goal} = problem) do
+  def solve(%{graph: graph, reindeer: {start, _start_direction}, goal: goal}) do
     start_node = Map.get(graph, start)
-    {cost, _paths} = a_star(graph, start_node, goal)
-    # print_path(problem, path)
-    cost
+    a_star(graph, start_node, goal)
   end
 
-  def part_two(%{graph: graph, reindeer: {start, _start_direction}, goal: goal} = problem) do
-    start_node = Map.get(graph, start)
-    {_cost, paths} = a_star(graph, start_node, goal)
-    # print_path(problem, path)
-    Enum.flat_map([paths], fn path -> Enum.map(path, &elem(&1, 0)) end)
-    |> Enum.uniq()
+  def part_one(%{result: {cost, _nodes}}), do: cost
+
+  def part_two(%{result: {_cost, nodes}} = problem) do
+    print_path(problem, nodes)
+
+    nodes
     |> Enum.count()
   end
 
@@ -63,37 +64,44 @@ defmodule Aoc2024.Solutions.Y24.Day16 do
     came_from = %{}
     g_scores = %{{start.coord, :right} => 0}
 
-    search(graph, open_set, visited, came_from, g_scores, goal)
+    search(graph, open_set, visited, came_from, g_scores, goal, nil)
   end
 
-  def search(graph, open, closed, came_from, g_scores, goal) do
+  def search(graph, open, closed, came_from, g_scores, goal, lowest_f) do
     if :gb_sets.is_empty(open) do
-      :no_path
+      if is_nil(lowest_f) do
+        :no_path
+      else
+        {lowest_f, unique_nodes(came_from, goal)}
+      end
     else
       {{f_key, current_node_pos, current_direction}, open} = :gb_sets.take_smallest(open)
       current_node = Map.get(graph, current_node_pos)
 
-      if current_node_pos == goal do
-        {f_key, reconstruct_path(came_from, {goal, current_direction}, [])}
-      else
-        closed =
-          MapSet.put(closed, {current_node_pos, current_direction})
+      cond do
+        not is_nil(lowest_f) and f_key > lowest_f ->
+          {lowest_f, unique_nodes(came_from, goal)}
 
-        # |> IO.inspect()
+        current_node_pos == goal ->
+          search(graph, open, closed, came_from, g_scores, goal, f_key)
 
-        {open, g_scores, came_from} =
-          process_edges(
-            graph,
-            current_node,
-            current_direction,
-            open,
-            closed,
-            g_scores,
-            came_from,
-            goal
-          )
+        true ->
+          closed =
+            MapSet.put(closed, {current_node_pos, current_direction})
 
-        search(graph, open, closed, came_from, g_scores, goal)
+          {open, g_scores, came_from} =
+            process_edges(
+              graph,
+              current_node,
+              current_direction,
+              open,
+              closed,
+              g_scores,
+              came_from,
+              goal
+            )
+
+          search(graph, open, closed, came_from, g_scores, goal, lowest_f)
       end
     end
   end
@@ -108,18 +116,28 @@ defmodule Aoc2024.Solutions.Y24.Day16 do
       new_direction =
         calculate_direction(node.coord, edge)
 
-      if new_direction not in possible_turns or MapSet.member?(closed, {edge, new_direction}) do
+      turn_cost = if new_direction == direction, do: 0, else: 1000
+      tentative_g = current_g + 1 + turn_cost
+      edge_best_g = Map.get(g_scores, {edge, new_direction})
+
+      if new_direction not in possible_turns or
+           (MapSet.member?(closed, {edge, new_direction}) and
+              not is_nil(edge_best_g) and
+              edge_best_g < tentative_g) do
         {open, g_scores, came_from}
       else
-        turn_cost = if new_direction == direction, do: 0, else: 1000
-        tentative_g = current_g + 1 + turn_cost
-
         if better_path?(tentative_g, edge, new_direction, g_scores) do
           f = tentative_g + heuristic(edge, goal, new_direction)
           open = add_or_update_set(edge, f, new_direction, open)
 
-          {open, Map.put(g_scores, {edge, new_direction}, tentative_g),
-           Map.put(came_from, {edge, new_direction}, {node.coord, direction})}
+          parent_tuple = {node.coord, direction}
+          edge_tuple = {edge, new_direction}
+          came_from = Map.put(came_from, edge_tuple, parent_tuple)
+          # came_from =            Map.update(came_from, edge_tuple, [parent_tuple], fn parents ->
+          #    [parent_tuple | parents]
+          #  end)
+
+          {open, Map.put(g_scores, edge_tuple, tentative_g), came_from}
         else
           {open, g_scores, came_from}
         end
@@ -132,13 +150,10 @@ defmodule Aoc2024.Solutions.Y24.Day16 do
     x_diff = abs(b.x - a.x)
     y_diff = abs(b.y - a.y)
 
-    # Calculate minimum turns needed
     min_turns =
       cond do
-        # If we're moving purely horizontally or vertically
         x_diff == 0 or y_diff == 0 ->
           case direction do
-            # Need one turn if going up but need to move horizontally
             :up when x_diff > 0 -> 1
             :down when x_diff > 0 -> 1
             :left when y_diff > 0 -> 1
@@ -146,9 +161,7 @@ defmodule Aoc2024.Solutions.Y24.Day16 do
             _ -> 0
           end
 
-        # If we need to move both horizontally and vertically
         true ->
-          # We'll need at least one turn to change direction
           1
       end
 
@@ -190,17 +203,17 @@ defmodule Aoc2024.Solutions.Y24.Day16 do
     end
   end
 
-  def reconstruct_path(came_from, last_pos, path) do
-    case Map.pop(came_from, last_pos) do
-      {nil, _} -> [last_pos | path]
-      {parent, came_from} -> reconstruct_path(came_from, parent, [last_pos | path])
-    end
+  def unique_nodes(came_from, goal) do
+    Map.keys(came_from)
+    |> Enum.map(&elem(&1, 0))
+    |> Enum.concat([goal])
+    |> Enum.uniq()
   end
 
   def better_path?(maybe_g, edge, direction, g_scores) do
     case Map.get(g_scores, {edge, direction}) do
       nil -> true
-      g_score -> maybe_g < g_score
+      g_score -> maybe_g <= g_score
     end
   end
 
@@ -217,17 +230,13 @@ defmodule Aoc2024.Solutions.Y24.Day16 do
   def edge?(:floor, :floor), do: {:edge, 1}
   def edge?(_a, _b), do: :no_edge
 
-  def print_path(%{map: map, reindeer: {start, _}, goal: goal}, path) do
-    coords = Map.keys(map)
-    min_x = Enum.min_by(coords, & &1.x).x
-    max_x = Enum.max_by(coords, & &1.x).x
-    min_y = Enum.min_by(coords, & &1.y).y
-    max_y = Enum.max_by(coords, & &1.y).y
+  def print_path(%{map: map, bounds: bounds, reindeer: {start, _}, goal: goal}, path) do
+    min_x = 0
+    max_x = bounds.x
+    min_y = 0
+    max_y = bounds.y
 
-    path_set =
-      path
-      |> Enum.map(&elem(&1, 0))
-      |> MapSet.new()
+    path_set = MapSet.new(path)
 
     IO.puts("\nPath Visualization:")
 

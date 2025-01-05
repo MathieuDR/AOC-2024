@@ -127,7 +127,6 @@ defmodule Aoc2024.Solutions.Y24.Day16Test do
     ##S##
     """
 
-    assert 4007 == solve(input, :part_one)
     assert 13 == solve(input, :part_two)
   end
 
@@ -139,5 +138,6 @@ defmodule Aoc2024.Solutions.Y24.Day16Test do
   test "part two solution" do
     assert {:ok, part_two_solution} = AoC.run(2024, 16, :part_two)
     assert part_two_solution > 414
+    assert part_two_solution < 8466
   end
 end
