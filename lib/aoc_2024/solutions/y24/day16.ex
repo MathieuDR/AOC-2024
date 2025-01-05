@@ -129,21 +129,30 @@ defmodule Aoc2024.Solutions.Y24.Day16 do
               edge_best_g < tentative_g) do
         {open, g_scores, came_from}
       else
-        if better_path?(tentative_g, edge, new_direction, g_scores) do
-          f = tentative_g + heuristic(edge, goal, new_direction)
-          open = add_or_update_set(edge, f, new_direction, open)
+        case path_type(tentative_g, edge, new_direction, g_scores) do
+          :worse ->
+            {open, g_scores, came_from}
 
-          parent_tuple = {node.coord, direction}
-          edge_tuple = {edge, new_direction}
-          came_from = Map.put(came_from, edge_tuple, parent_tuple)
+          path_type when path_type in [:new, :better, :equal] ->
+            f = tentative_g + heuristic(edge, goal, new_direction)
+            open = add_or_update_set(edge, f, new_direction, open)
 
-          {open, Map.put(g_scores, edge_tuple, tentative_g), came_from}
-        else
-          {open, g_scores, came_from}
+            parent_tuple = {node.coord, direction}
+            edge_tuple = {edge, new_direction}
+
+            came_from = insert_path(came_from, path_type, edge_tuple, parent_tuple)
+
+            {open, Map.put(g_scores, edge_tuple, tentative_g), came_from}
         end
       end
     end)
   end
+
+  def insert_path(came_from, :equal, edge_tuple, parent_tuple),
+    do: Map.update(came_from, edge_tuple, [parent_tuple], fn a -> [parent_tuple | a] end)
+
+  def insert_path(came_from, _new_or_better, edge_tuple, parent_tuple),
+    do: Map.put(came_from, edge_tuple, [parent_tuple])
 
   def heuristic(a, b, direction) do
     manhatten_distance = Coords.manhatten_distance(a, b)
@@ -204,36 +213,45 @@ defmodule Aoc2024.Solutions.Y24.Day16 do
   end
 
   def unique_nodes(came_from, goal) do
-    IO.inspect(goal, label: "GOAL")
-    IO.inspect(came_from)
+    IO.puts("Trying to put nodes together")
 
-    starts =
-      Enum.filter(came_from, fn
-        {{^goal, _}, _} -> true
-        _ -> false
-      end)
-
-    Enum.flat_map(starts, fn {k, _v} ->
-      reconstruct_path(came_from, k, [])
-      |> Enum.map(&elem(&1, 0))
+    Enum.filter(came_from, fn
+      {{^goal, _}, _} -> true
+      _ -> false
     end)
+    # |> IO.inspect(label: "starting points in path")
+    |> Enum.flat_map(fn {k, parents} ->
+      Enum.flat_map(parents, fn parent ->
+        reconstruct_path(came_from, parent, [k])
+        # |> IO.inspect(label: "PATH")
+      end)
+    end)
+    |> List.flatten()
+    |> Enum.map(&elem(&1, 0))
     |> Enum.uniq()
   end
 
-  def reconstruct_path(_came_from, nil, acc), do: acc
-
   def reconstruct_path(came_from, key, acc) do
-    r =
-      Map.get(came_from, key)
-      |> IO.inspect(label: "r")
+    acc = [key | acc]
 
-    reconstruct_path(came_from, r, [key | acc])
+    case Map.get(came_from, key) do
+      nil ->
+        acc
+
+      [next] ->
+        reconstruct_path(came_from, next, acc)
+
+      parents ->
+        Enum.map(parents, &reconstruct_path(came_from, &1, acc))
+    end
   end
 
-  def better_path?(maybe_g, edge, direction, g_scores) do
+  def path_type(maybe_g, edge, direction, g_scores) do
     case Map.get(g_scores, {edge, direction}) do
-      nil -> true
-      g_score -> maybe_g <= g_score
+      nil -> :new
+      g_score when g_score > maybe_g -> :better
+      g_score when g_score == maybe_g -> :equal
+      _ -> :worse
     end
   end
 
