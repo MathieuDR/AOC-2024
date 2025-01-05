@@ -50,6 +50,9 @@ defmodule Aoc2024.Solutions.Y24.Day16 do
   def part_one(%{result: {cost, _nodes}}), do: cost
 
   def part_two(%{result: {_cost, nodes}} = problem) do
+    IO.puts("PROBLEM:\n")
+    print_path(problem, %{})
+    IO.puts("PATH:\n")
     print_path(problem, nodes)
 
     nodes
@@ -133,9 +136,6 @@ defmodule Aoc2024.Solutions.Y24.Day16 do
           parent_tuple = {node.coord, direction}
           edge_tuple = {edge, new_direction}
           came_from = Map.put(came_from, edge_tuple, parent_tuple)
-          # came_from =            Map.update(came_from, edge_tuple, [parent_tuple], fn parents ->
-          #    [parent_tuple | parents]
-          #  end)
 
           {open, Map.put(g_scores, edge_tuple, tentative_g), came_from}
         else
@@ -203,9 +203,31 @@ defmodule Aoc2024.Solutions.Y24.Day16 do
     end
   end
 
-  def unique_nodes(came_from, _goal) do
-    Enum.flat_map(came_from, fn {{k, _kdir}, {v, _vdir}} -> [k, v] end)
+  def unique_nodes(came_from, goal) do
+    IO.inspect(goal, label: "GOAL")
+    IO.inspect(came_from)
+
+    starts =
+      Enum.filter(came_from, fn
+        {{^goal, _}, _} -> true
+        _ -> false
+      end)
+
+    Enum.flat_map(starts, fn {k, _v} ->
+      reconstruct_path(came_from, k, [])
+      |> Enum.map(&elem(&1, 0))
+    end)
     |> Enum.uniq()
+  end
+
+  def reconstruct_path(_came_from, nil, acc), do: acc
+
+  def reconstruct_path(came_from, key, acc) do
+    r =
+      Map.get(came_from, key)
+      |> IO.inspect(label: "r")
+
+    reconstruct_path(came_from, r, [key | acc])
   end
 
   def better_path?(maybe_g, edge, direction, g_scores) do
