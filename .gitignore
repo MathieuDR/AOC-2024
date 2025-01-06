@@ -30,3 +30,4 @@ aoc_2024-*.tar
 .direnv
 .envrc_secret
 .adventofcode.session
+.aoc.defaults
