@@ -119,6 +119,20 @@ defmodule Aoc2024.Solutions.Y24.Day16Test do
     assert 64 == solve(input, :part_two)
   end
 
+  test "edge case 3" do
+    input = ~S"""
+    ##.##
+    ##.##
+    ..E..
+    .###.
+    .....
+    ##.##
+    ##S##
+    """
+
+    assert 14 == solve(input, :part_two)
+  end
+
   test "part two example, 2" do
     input = ~S"""
     ##E##

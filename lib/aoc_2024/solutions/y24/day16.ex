@@ -213,36 +213,33 @@ defmodule Aoc2024.Solutions.Y24.Day16 do
   end
 
   def unique_nodes(came_from, goal) do
-    IO.puts("Trying to put nodes together")
+    visited = MapSet.new()
 
     Enum.filter(came_from, fn
       {{^goal, _}, _} -> true
       _ -> false
     end)
-    # |> IO.inspect(label: "starting points in path")
-    |> Enum.flat_map(fn {k, parents} ->
-      Enum.flat_map(parents, fn parent ->
-        reconstruct_path(came_from, parent, [k])
-        # |> IO.inspect(label: "PATH")
-      end)
+    |> Enum.reduce(visited, fn {key, parents}, visited ->
+      collect_nodes(came_from, parents, MapSet.put(visited, key))
     end)
-    |> List.flatten()
-    |> Enum.map(&elem(&1, 0))
-    |> Enum.uniq()
+    |> MapSet.new(&elem(&1, 0))
   end
 
-  def reconstruct_path(came_from, key, acc) do
-    acc = [key | acc]
+  def collect_nodes(_came_from, [], visited), do: visited
 
-    case Map.get(came_from, key) do
-      nil ->
-        acc
+  def collect_nodes(came_from, [parent | rest], visited) do
+    if MapSet.member?(visited, parent) do
+      collect_nodes(came_from, rest, visited)
+    else
+      visited = MapSet.put(visited, parent)
 
-      [next] ->
-        reconstruct_path(came_from, next, acc)
+      case Map.get(came_from, parent) do
+        nil ->
+          collect_nodes(came_from, rest, visited)
 
-      parents ->
-        Enum.map(parents, &reconstruct_path(came_from, &1, acc))
+        parents ->
+          collect_nodes(came_from, rest ++ parents, visited)
+      end
     end
   end
 
