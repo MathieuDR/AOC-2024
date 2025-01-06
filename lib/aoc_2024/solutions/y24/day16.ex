@@ -49,11 +49,11 @@ defmodule Aoc2024.Solutions.Y24.Day16 do
 
   def part_one(%{result: {cost, _nodes}}), do: cost
 
-  def part_two(%{result: {_cost, nodes}} = problem) do
-    IO.puts("PROBLEM:\n")
-    print_path(problem, %{})
-    IO.puts("PATH:\n")
-    print_path(problem, nodes)
+  def part_two(%{result: {_cost, nodes}} = _problem) do
+    # IO.puts("PROBLEM:\n")
+    # print_path(problem, %{})
+    # IO.puts("PATH:\n")
+    # print_path(problem, nodes)
 
     nodes
     |> Enum.count()
