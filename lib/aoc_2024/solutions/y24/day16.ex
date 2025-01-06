@@ -285,7 +285,7 @@ defmodule Aoc2024.Solutions.Y24.Day16 do
             MapSet.member?(path_set, coord) and coord == goal -> "E"
             coord == start -> "s"
             coord == goal -> "e"
-            MapSet.member?(path_set, coord) -> "○"  
+            MapSet.member?(path_set, coord) -> "○"
             map[coord] == :wall -> "#"
             map[coord] == :floor -> "."
             true -> " "
