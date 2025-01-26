@@ -57,8 +57,11 @@ defmodule Aoc2024.Solutions.Y24.Day17.Computer do
 
   def division(%{A: a} = state, operand) do
     denominator_power = combo(state, operand)
-    denominator = :math.pow(2, denominator_power)
+
+    denominator =
+      :math.pow(2, denominator_power)
       |> trunc()
+
     div(a, denominator)
   end
 
